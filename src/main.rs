@@ -61,7 +61,23 @@ fn main() -> io::Result<()> {
                     return;
                 }
 
+                if let Err(e) = conn.read() {
+                    if let Err(_) = tx_event.send(Event::Message(format!("Lost connection: {}", e)))
+                    {
+                        println!("Lost connection: {}", e);
+                    }
+                    return;
+                }
+
                 if let Err(e) = conn.write(&Sync2 { data: 2 }) {
+                    if let Err(_) = tx_event.send(Event::Message(format!("Lost connection: {}", e)))
+                    {
+                        println!("Lost connection: {}", e);
+                    }
+                    return;
+                }
+
+                if let Err(e) = conn.read() {
                     if let Err(_) = tx_event.send(Event::Message(format!("Lost connection: {}", e)))
                     {
                         println!("Lost connection: {}", e);
@@ -74,6 +90,14 @@ fn main() -> io::Result<()> {
                     paused: false,
                     support_reconnect: false,
                 }) {
+                    if let Err(_) = tx_event.send(Event::Message(format!("Lost connection: {}", e)))
+                    {
+                        println!("Lost connection: {}", e);
+                    }
+                    return;
+                }
+
+                if let Err(e) = conn.read() {
                     if let Err(_) = tx_event.send(Event::Message(format!("Lost connection: {}", e)))
                     {
                         println!("Lost connection: {}", e);
